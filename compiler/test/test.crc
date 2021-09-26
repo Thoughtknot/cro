@@ -1,0 +1,19 @@
+var a := 9.0
+var b := 9 + 2
+c = b * 3 + (2 - 9.0)
+c(1, 2, k)
+c = b.a
+
+obj typea {
+    string s,
+    int r
+}
+
+obj typeb {
+    string t,
+    typec k
+}
+
+fn little(typea a, typeb b) typec {
+    var c := 0
+}
