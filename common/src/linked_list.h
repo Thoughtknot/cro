@@ -10,6 +10,7 @@
     typedef struct { \
         TYPE##Node* head; \
         TYPE##Node* tail; \
+        int size; \
     } TYPE##List; \
     TYPE##List* make_##TYPE##_list(); \
     void add_##TYPE(TYPE##List* list, TYPE * value); \
@@ -20,6 +21,7 @@
         TYPE##List* list = (TYPE##List*) malloc(sizeof(*list)); \
         list->head = NULL; \
         list->tail = NULL; \
+        list->size = 0; \
         return list; \
     } \
     \
@@ -41,6 +43,7 @@
             list->tail->next = node; \
             list->tail = node; \
         } \
+        list->size++; \
     } \
     \
     TYPE* pop_##TYPE(TYPE##List* list) { \
@@ -55,6 +58,7 @@
                 list->tail->next = NULL;\
             }\
             /*free(node);*/ \
+            list->size--; \
             return val; \
         } \
         return NULL;\
