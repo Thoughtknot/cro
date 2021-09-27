@@ -1,8 +1,13 @@
+s = getVal() + r
 var a := 9.0
 var b := 9 + 2
 c = b * 3 + (2 - 9.0)
 c(1, 2, k)
 c = b.a
+c = b.a + r
+n()
+d(c.a.b)
+s = getVal().r
 
 obj typea {
     string s,

@@ -83,7 +83,6 @@ void read_expected(Parser* p, Token token) {
 }
 
 void read_expression(Parser* p, Precedence pr) {
-    printf("READ EXP:");
     read_next_lexeme(p);
     Expression* exp;
     switch (get_current_lexeme(p).token) {
@@ -103,11 +102,12 @@ void read_expression(Parser* p, Precedence pr) {
         case T_FLOAT:
             exp = make_float(p);
             break;
-        case T_IDENTIFIER:
+        case T_IDENTIFIER: 
             exp = make_var_ref(p);
             break;
         default:
-            parser_error(p, "Syntax error, expected operand");
+            //parser_error(p, "Syntax error, expected operand");
+            break;
     }
     push_expression(p, exp);
     read_next_lexeme(p);

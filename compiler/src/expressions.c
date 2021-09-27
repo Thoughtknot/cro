@@ -7,11 +7,23 @@ MAKE_LINKED_LIST(Param)
 MAKE_LINKED_LIST(Statement)
 
 void make_fn_call_list(ExpressionList* list, Parser* p) {
+    read_next_lexeme(p);
+    if (get_current_lexeme(p).token == T_RPAREN) {
+        return;
+    }
+    p->currentLexeme--;
     while (true) {
         read_expression(p, P_ASS);
+        printf("Expression stack size: %d\n", p->stack->size);
         Expression* value = pop_expression(p);
+        fflush(stdout);
+        print_expression(value);
         add_Expression(list, value);
         read_next_lexeme(p);
+        if (get_previous_lexeme(p).token == T_RPAREN) {
+            p->currentLexeme--;
+            break;
+        }
         if (get_current_lexeme(p).token == T_RPAREN) break;
         if (get_current_lexeme(p).token != T_COMMA) parser_error(p, "Expected comma in fn call");
     }
@@ -142,17 +154,26 @@ Expression* make_binary(Parser* p) {
 }
 
 Expression* make_field_ref_exp(Parser* p) {
-    Identifier name = read_identifier(p);
+    p->currentLexeme--;
+    read_expression(p, P_PAREN);
+    Expression* exp1 = pop_expression(p);
     Expression* exp = pop_expression(p);
+    printf("fieldRef:{");
+    print_expression(exp1);
+    print_expression(exp);
+    printf("}\n");
     FieldRefExpression* fr = (FieldRefExpression*) malloc(sizeof(*fr));
     fr->exp.type = EXP_FIELDREF;
-    fr->name = name;
+    if (exp1->type == EXP_VARREF) {
+        VarRefExpression* v = (VarRefExpression*) exp1;
+        fr->name = v->varName;
+        free(v);
+    }
     fr->obj = exp;
 
     //?? can't be right
     p->currentLexeme++;
     //
-
 
     return (Expression*) fr;
 }
@@ -162,7 +183,11 @@ Expression* make_fn_call_exp(Parser* p) {
     fnCall->exp.type = EXP_FNCALL;
     fnCall->fn = pop_expression(p);
     fnCall->list = make_Expression_list();
+    if (get_current_lexeme(p).token != T_LPAREN)
+        p->currentLexeme--;
     make_fn_call_list(fnCall->list, p);
+    if (get_current_lexeme(p).token == T_RPAREN)
+        read_next_lexeme(p);
     return (Expression*) fnCall;
 }
 Statement* make_fn_decl(Parser* p) {
@@ -369,6 +394,19 @@ void print_expression(Expression* exp) {
             printf(" ");
             print_expression(b->r);
             printf("}");
+            break;
+        }
+        case EXP_FNCALL: {
+            FnCallExpression* fc = (FnCallExpression*) exp;
+            printf("FnCall[");
+            print_expression(fc->fn);
+            printf("]: {");
+            ExpressionNode* arg = fc->list->head;
+            while (arg != NULL) {
+                print_expression(arg->current);
+                arg = arg->next;
+            }
+            printf("}\n");
             break;
         }
         case EXP_PAREN: {
