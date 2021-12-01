@@ -1,21 +1,63 @@
-s = getVal() + r
-var a := 9.0
-var b := 9 + 2
-c = b * 3 + (2 - 9.0)
-c(1, 2, k)
-c = b.a
-c = b.a + r
-n()
-d(c.a.b)
-s = getVal().r
+define pos is int x: {
+    x > 0,
+    x == 0
+}
+
+obj typec {
+    string[] s
+    maybe int r
+}
+
+fn main() status {
+    var n := just 15
+    var k := just 3 + 3
+    var r := none
+    var k := true
+    g = new testobj()
+    h = new testobj(1,3)
+    if (n == 0) {
+        k = false
+    }
+
+    if r < 2 + 1 {
+        var k := 3
+    } elif k == 2 {
+        var apa := 1
+    } else {
+        apa = "hellooooooo" + "never"
+    }
+}
+
+fn other(int a) int {
+    loop s < 0 {
+        var q := 4 + 3
+    }
+
+    c.b.test.too = 9
+    c.b.getApa().too = 9
+
+    s = getVal() + r
+    var a := 9.0
+    var b := 9 + 2
+    c = b * 3 + (2 - 9.0)
+    c(1, 2, k)
+    c = b.a
+    c = b.a + r
+    n()
+    d(c.a.b)
+    s = getVal().r
+
+    t = a.b.c.d
+    return 9
+}
 
 obj typea {
-    string s,
+    string s
     int r
 }
 
 obj typeb {
-    string t,
+    string t
     typec k
 }
 

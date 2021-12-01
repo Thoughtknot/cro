@@ -8,11 +8,12 @@ MAKE_LINKED_LIST(Expression)
 MAKE_DYNAMIC_ARRAY(Lexeme)
 
 Precedence precedences[] = {
-    [T_LPAREN] = P_PAREN,
+    [T_LPAREN] = P_CALL,
+    [T_LSPAREN] = P_CALL,
     [T_RPAREN] = P_NONE,
     [T_LCPAREN] = P_NONE,
     [T_RCPAREN] = P_NONE,
-    [T_COMMA] = P_NONE,
+    [T_COMMA] = P_ASS,
     [T_SEMIC] = P_NONE,
     [T_NOT] = P_NONE,
     [T_VAR] = P_NONE,
@@ -25,6 +26,7 @@ Precedence precedences[] = {
     [T_FLOAT] = P_NONE,
     [T_INTEGER] = P_NONE,
     [T_MINUS] = P_ADD,
+    [T_CONCAT] = P_ADD,
     [T_PLUS] = P_ADD,
     [T_MUL] = P_MUL,
     [T_DIV] = P_MUL,
@@ -34,6 +36,7 @@ Precedence precedences[] = {
     [T_LT] = P_CMP,
     [T_LEQ] = P_CMP,
     [T_PERIOD] = P_PAREN,
+    [T_COLON] = P_MUL,
 };
 
 void parser_error(Parser* p, const char* reason);
@@ -77,7 +80,7 @@ void read_expected(Parser* p, Token token) {
     read_next_lexeme(p);
     if (get_current_lexeme(p).token != token) {
         char reason[50];
-        sprintf(reason, "Expected token %d, was %d", token, get_current_lexeme(p).token);
+        sprintf(reason, "Expected token %s, was %s", tokens[token], tokens[get_current_lexeme(p).token]);
         parser_error(p, reason);
     }
 }
@@ -86,6 +89,9 @@ void read_expression(Parser* p, Precedence pr) {
     read_next_lexeme(p);
     Expression* exp;
     switch (get_current_lexeme(p).token) {
+        case T_NEW:
+            exp = make_allocation_lit(p);
+            break;
         case T_LPAREN:
             exp = make_paren(p);
             break;
@@ -93,8 +99,14 @@ void read_expression(Parser* p, Precedence pr) {
         case T_NOT:
             exp = make_unary(p);
             break;
+        case T_TRUE:
+            exp = make_bool_exp(p, true);
+            break;
+        case T_FALSE:
+            exp = make_bool_exp(p, false);
+            break;
         case T_STRING:
-            exp = make_string(p);
+            exp = make_string_exp(p);
             break;
         case T_INTEGER:
             exp = make_integer(p);
@@ -105,6 +117,12 @@ void read_expression(Parser* p, Precedence pr) {
         case T_IDENTIFIER: 
             exp = make_var_ref(p);
             break;
+        case T_NONE:
+            exp = make_none(p);
+            break;
+        case T_JUST:
+            exp = make_just(p);
+            break;
         default:
             //parser_error(p, "Syntax error, expected operand");
             break;
@@ -114,11 +132,14 @@ void read_expression(Parser* p, Precedence pr) {
     while (precedences[get_current_lexeme(p).token] >= pr) {
         read_next_lexeme(p);
         switch (get_previous_lexeme(p).token) {
+            case T_LSPAREN:
+                push_expression(p, make_array_ref_exp(p));
+                break;
             case T_LPAREN:
                 push_expression(p, make_fn_call_exp(p));
                 break;
-            case T_PERIOD:
-                push_expression(p, make_field_ref_exp(p));
+            case T_COMMA:
+                push_expression(p, make_tuple_exp(p));
                 break;
             case T_EQQ:
             case T_GT:
@@ -128,6 +149,8 @@ void read_expression(Parser* p, Precedence pr) {
             case T_NEQ:
             case T_MINUS:
             case T_PLUS:
+            case T_COLON:
+            case T_CONCAT:
             case T_MUL:
             case T_DIV:
                 push_expression(p, make_binary(p));
@@ -139,19 +162,39 @@ void read_expression(Parser* p, Precedence pr) {
     p->currentLexeme--;
 }
 
-Statement* read_statement(Parser* p) {
-    read_next_lexeme(p);
-    if (get_current_lexeme(p).token == T_VAR) {
-        return make_variable_decl(p);
-    } 
-    else if (get_current_lexeme(p).token == T_FN) {
+Statement* read_declaration(Parser* p) {
+    read_next_lexeme(p);  
+    if (get_current_lexeme(p).token == T_FN) {
         return make_fn_decl(p);
     }
     else if (get_current_lexeme(p).token == T_OBJ) {
         return make_obj_decl(p);
     }
+    else if (get_current_lexeme(p).token == T_TYPEDEF) {
+        return make_typedef(p);
+    }
+    else if (get_current_lexeme(p).token == T_EOF) {
+        return NULL;
+    }
+    return NULL;
+}
+
+Statement* read_statement(Parser* p) {
+    read_next_lexeme(p);
+    if (get_current_lexeme(p).token == T_VAR) {
+        return make_variable_decl(p);
+    } 
+    else if (get_current_lexeme(p).token == T_IF) {
+        return make_if(p);
+    }
+    else if (get_current_lexeme(p).token == T_LOOP) {
+        return make_loop(p);
+    }
+    else if (get_current_lexeme(p).token == T_RETURN) {
+        return make_return(p);
+    }
     else if (get_current_lexeme(p).token == T_IDENTIFIER) {
-        Identifier name = read_identifier(p);
+        IdentifierArray* name = read_identifier_list(p);
         read_next_lexeme(p);
         if (get_current_lexeme(p).token == T_EQ) {
             return make_variable_assign(p, name);
@@ -176,12 +219,15 @@ Statement* read_statement(Parser* p) {
     return NULL;
 }
 
-void parse(Parser* p) {
+StatementList* parse(Parser* p) {
+    StatementList* list = make_Statement_list();
     while (true) {
-        Statement* stmt = read_statement(p);
+        Statement* stmt = read_declaration(p);
         if (stmt == NULL) break;
         print_statement(stmt);
+        add_Statement(list, stmt);
     }
+    return list;
 }
 
 void init_parser(Parser* p) {

@@ -1,3 +1,5 @@
-
+.vscode
 croc
+crod
+crow
 *.o

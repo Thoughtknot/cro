@@ -1,0 +1,12 @@
+fn main() int {
+    var k := 3 + 3
+    var s := new typea("test", 9)
+    s.r = 2
+    var n := k + 9
+    return k
+}
+
+obj typea {
+    string s
+    int r
+comp

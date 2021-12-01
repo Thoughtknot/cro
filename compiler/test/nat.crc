@@ -1,0 +1,21 @@
+fn main() int {
+    var c := double(3)
+    var d := new int[1, 2, (4+3)]
+    var e := new int[4, 1 + 9, -2] 
+    d = d ++ e : 8
+    d = 4 : d
+    system.print(d)
+    return idx(d)
+}
+
+fn idx(int[] d) int {
+    return d[2]
+}
+
+fn idx(int[] d) (int,int) {
+    return (d[2],d[1])
+}
+
+fn double(int d) int {
+    return d * 2
+}

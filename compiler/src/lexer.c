@@ -6,6 +6,9 @@
 #define SIMPLE_LEXEME(T) \
     case T: return make_lexeme(l, T_##T);
 
+#define TOKEN(T) \
+    [T] = #T
+
 bool is_keyword(Lexer* l, const char* str);
 bool is_digit(char c);
 bool is_char(char c);
@@ -13,6 +16,54 @@ bool next_char(Lexer* l, char expected);
 void skip_ws(Lexer* l);
 void advance(Lexer* l);
 char peek(Lexer* l, int lookahead);
+
+const char* tokens[] = {
+    TOKEN(T_EOF), 
+    TOKEN(T_ERROR),
+    TOKEN(T_RPAREN), 
+    TOKEN(T_LPAREN),
+    TOKEN(T_RCPAREN), 
+    TOKEN(T_LCPAREN),
+    TOKEN(T_RSPAREN), 
+    TOKEN(T_LSPAREN),
+    TOKEN(T_SEMIC), 
+    TOKEN(T_COLON),
+    TOKEN(T_COMMA), 
+    TOKEN(T_PERIOD),
+    TOKEN(T_PLUS), 
+    TOKEN(T_MINUS),
+    TOKEN(T_EQQ), 
+    TOKEN(T_EQ),
+    TOKEN(T_NOT), 
+    TOKEN(T_NEQ),
+    TOKEN(T_LT), 
+    TOKEN(T_LEQ),
+    TOKEN(T_GT), 
+    TOKEN(T_GEQ),
+    TOKEN(T_MUL), 
+    TOKEN(T_DIV),
+    TOKEN(T_STRING), 
+    TOKEN(T_INTEGER),
+    TOKEN(T_FLOAT), 
+    TOKEN(T_IDENTIFIER),
+    TOKEN(T_FN), 
+    TOKEN(T_IF), 
+    TOKEN(T_ELSE), 
+    TOKEN(T_ELIF),
+    TOKEN(T_LOOP), 
+    TOKEN(T_RETURN), 
+    TOKEN(T_VAR),
+    TOKEN(T_OBJ), 
+    TOKEN(T_TYPEDEF),
+    TOKEN(T_MAYBE), 
+    TOKEN(T_JUST), 
+    TOKEN(T_NONE),
+    TOKEN(T_TRUE), 
+    TOKEN(T_FALSE), 
+    TOKEN(T_IS),
+    TOKEN(T_NEW),
+    TOKEN(T_CONCAT),
+};
 
 Lexeme make_lexeme(Lexer* l, Token t) {
     return (Lexeme) { .token=t, .start=l->program, .line=l->line, .col=l->column, .length=(l->current - l->program) };
@@ -34,11 +85,56 @@ Lexeme make_identifier(Lexer* l) {
     if (is_keyword(l, KW_FN)) {
         return make_lexeme(l, T_FN);
     }
+    if (is_keyword(l, KW_LOOP)) {
+        return make_lexeme(l, T_LOOP);
+    }
     if (is_keyword(l, KW_VAR)) {
         return make_lexeme(l, T_VAR);
     }
+    if (is_keyword(l, KW_PID)) {
+        return make_lexeme(l, T_PID);
+    }
     if (is_keyword(l, KW_OBJ)) {
         return make_lexeme(l, T_OBJ);
+    }
+    if (is_keyword(l, KW_IF)) {
+        return make_lexeme(l, T_IF);
+    }
+    if (is_keyword(l, KW_ELIF)) {
+        return make_lexeme(l, T_ELIF);
+    }
+    if (is_keyword(l, KW_ELSE)) {
+        return make_lexeme(l, T_ELSE);
+    }
+    if (is_keyword(l, KW_RET)) {
+        return make_lexeme(l, T_RETURN);
+    }
+    if (is_keyword(l, KW_MAYBE)) {
+        return make_lexeme(l, T_MAYBE);
+    }
+    if (is_keyword(l, KW_NONE)) {
+        return make_lexeme(l, T_NONE);
+    }
+    if (is_keyword(l, KW_JUST)) {
+        return make_lexeme(l, T_JUST);
+    }
+    if (is_keyword(l, KW_TRUE)) {
+        return make_lexeme(l, T_TRUE);
+    }
+    if (is_keyword(l, KW_FALSE)) {
+        return make_lexeme(l, T_FALSE);
+    }
+    if (is_keyword(l, KW_TYPEDEF)) {
+        return make_lexeme(l, T_TYPEDEF);
+    }
+    if (is_keyword(l, KW_IS)) {
+        return make_lexeme(l, T_IS);
+    }
+    if (is_keyword(l, KW_NEW)) {
+        return make_lexeme(l, T_NEW);
+    }
+    if (is_keyword(l, KW_ACTOR)) {
+        return make_lexeme(l, T_ACTOR);
     }
     return make_lexeme(l, T_IDENTIFIER);
 }
@@ -75,10 +171,15 @@ Lexeme read_next_token(Lexer* l) {
         SIMPLE_LEXEME(COLON)
         SIMPLE_LEXEME(PERIOD)
         SIMPLE_LEXEME(COMMA)
-        SIMPLE_LEXEME(PLUS)
         SIMPLE_LEXEME(MINUS)
         SIMPLE_LEXEME(MUL)
         SIMPLE_LEXEME(DIV)
+        case PLUS: 
+            if (next_char(l, PLUS)) {
+                return make_lexeme(l, T_CONCAT);
+            } else {
+                return make_lexeme(l, T_PLUS);
+            }
         case QT:
             return make_string(l);
         case EQ: 

@@ -14,7 +14,9 @@ typedef enum {
     P_ADD,
     P_MUL,
     P_UNARY,
-    P_PAREN
+    P_PAREN,
+    P_CALL,
+    P_TUPLE
 } Precedence;
 
 typedef struct {
@@ -24,7 +26,7 @@ typedef struct {
     ExpressionList* stack;
 } Parser;
 
-void parse(Parser* p);
+StatementList* parse(Parser* p);
 void init_parser(Parser* p);
 void parser_error(Parser* p, const char* reason);
 

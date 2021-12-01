@@ -1,0 +1,19 @@
+fn main() int {
+    return fib(40)
+}
+
+fn fib(int a) int {
+    var p := 1
+    var q := 1
+    var r := 1
+    var i := 0
+    system.print(a)
+    loop (i < a - 1) {
+        r = q
+        q = p + q
+        p = r
+        i = i + 1
+        system.print(i)
+    }
+    return p
+}
